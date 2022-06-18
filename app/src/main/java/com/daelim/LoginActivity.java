@@ -17,6 +17,7 @@ import org.java_websocket.handshake.ServerHandshake;
 import java.net.URI;
 
 public class LoginActivity extends AppCompatActivity {
+    WebSocketClient ws;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +27,7 @@ public class LoginActivity extends AppCompatActivity {
         EditText id = findViewById(R.id.id);
         EditText pwd = findViewById(R.id.pwd);
         CheckBox auto = findViewById(R.id.auto);
+
 
         Boolean nauto = getIntent().getBooleanExtra("auto",false);
 

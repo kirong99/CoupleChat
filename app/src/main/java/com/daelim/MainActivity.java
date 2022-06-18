@@ -21,6 +21,7 @@ import com.daelim.data.ListData;
 
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
+import org.w3c.dom.Text;
 
 import java.net.URI;
 import java.text.SimpleDateFormat;
@@ -33,8 +34,7 @@ public class MainActivity extends AppCompatActivity {
     String eid;
     String epwd;
     Boolean eauto;
-    private ArrayList<String> array;
-    private ArrayAdapter<String> adapter;
+    private ArrayList<ListData> array;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         epwd = getIntent().getStringExtra("pwd");
         eauto = getIntent().getBooleanExtra("auto",true);
 
-        array = new ArrayList<String>();
+        array = new ArrayList<ListData>();
 
 
         try{
@@ -58,12 +58,14 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onOpen(ServerHandshake serverHandshake) {
                     Log.e("!!!","onOpen");
-                    ws.send("LOGIN|" + eid + "|" + epwd); //로그인 할때, 로그인 이후에 다른사람과 소통을 할 때
+                    ws.send("CHAT|" + eid + "|" + epwd);
+
 //
 //                    ws.send("LOGOUT|" + eid);
                     if(eid != null){
                         nick.setText(eid + "님 환영합니다.");
                     }
+
 
                 }
 
@@ -73,11 +75,12 @@ public class MainActivity extends AppCompatActivity {
                     Log.e("!!!","onMessage s : "+s);
                     String[] strs = s.split("\\|");
 
+
                     send.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View view) {
                             ws.send("CHAT|" + eid + "|" + chat.getText());
-                            chat.setText("");
+                            array.add(new ListData(chat.getText().toString()));
                             list.setAdapter(new BaseAdapter() {
                                 @Override
                                 public int getCount() {
@@ -97,24 +100,23 @@ public class MainActivity extends AppCompatActivity {
                                 @Override
                                 public View getView(int i, View view, ViewGroup viewGroup) {
                                     view = getLayoutInflater().inflate(R.layout.list_custom_item,viewGroup,false);
-                                    TextView chatt = view.findViewById(R.id.chatt);
-                                    String str = chat.getText().toString();
-                                    array.add(str);
-                                    chatt.setText(array.get(i));
-                                    list.deferNotifyDataSetChanged();
+                                    TextView my = view.findViewById(R.id.chatt);
+                                    my.setText(array.get(i).getChat());
+                                    notifyDataSetChanged();
+                                    chat.setText("");
                                     return view;
                                 }
                             });
+                            list.setTranscriptMode(ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+
                         }
                     });
-
-
 
                 }
 
                 @Override
                 public void onClose(int i, String s, boolean b) {
-                    Log.e("!!!","onClose");
+                    Log.e("!!!","onClose" + s);
                 }
 
                 @Override
@@ -133,6 +135,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Boolean nauto = false;
+                ws.close();
                 Intent i = new Intent(MainActivity.this,LoginActivity.class);
                 i.putExtra("eauto",nauto);
                 startActivity(i);
